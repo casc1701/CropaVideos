@@ -5,10 +5,15 @@ import glob
 
 video_files = glob.glob('*.mp4')
 for video_file in video_files:
+    if "cropped" in video_file:
+       print(f"Skipping processing for video: {video_file} (contains 'cropped')")
+       continue
     print(f"Processing video: {video_file}")
     
     
     #cap = cv2.VideoCapture('teste.mp4')
+    
+    ShowPreview = True
     
     cap = cv2.VideoCapture(video_file)
     
@@ -24,7 +29,7 @@ for video_file in video_files:
 
     # Define the codec and create a VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Use 'mp4v' or 'h264' for MP4 format
-    out = cv2.VideoWriter('output_video.mp4', fourcc, fps, (width, height))
+    #out = cv2.VideoWriter('output_video.mp4', fourcc, fps, (width, height))
 
     while True:
         _, frame = cap.read()
@@ -33,7 +38,7 @@ for video_file in video_files:
 
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         frame_diff = cv2.absdiff(gray_first, gray_frame)
-        _, thresh = cv2.threshold(frame_diff, 150, 100, cv2.THRESH_BINARY)
+        _, thresh = cv2.threshold(frame_diff, 200, 255, cv2.THRESH_BINARY)
 
         # Use contours or other techniques to identify moving parts
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -48,11 +53,12 @@ for video_file in video_files:
             max_y = max(max_y, y + h)
 
         # Write the frame to the output video
-        out.write(frame)
+        #out.write(frame)
 
-     #   cv2.imshow('Moving Parts', frame)
-     #   if cv2.waitKey(30) & 0xFF == 27:
-     #       break
+        if ShowPreview:
+            cv2.imshow('Moving Parts', frame)
+            if cv2.waitKey(30) & 0xFF == 27:
+             break
 
     # Calculate crop coordinates compatible with ffmpeg
     crop_coordinates = f"{max_x - min_x}:{max_y - min_y}:{min_x}:{min_y}"
@@ -63,7 +69,7 @@ for video_file in video_files:
 
 
     # Release the VideoWriter and video capture objects
-    out.release()
+    #out.release()
     cap.release()
     cv2.destroyAllWindows()
 
